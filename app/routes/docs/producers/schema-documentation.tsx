@@ -32,8 +32,8 @@ export default function SchemaDocumentation() {
           rel="external"
         >
           Core schema
-        </Link>
-        and specific properties as needed. Please add your schema our
+        </Link>{' '}
+        and specific properties as needed. Please add your schema our{' '}
         <Link href="https://github.com/nasa-gcn/gcn-schema" rel="external">
           Github repository
         </Link>{' '}
@@ -47,13 +47,18 @@ export default function SchemaDocumentation() {
       </p>
       <h2>Getting Started</h2>
       <p>
-        The first step is to fork your own copy of the{' '}
+        The first step is to clone your own copy of the{' '}
         <Link href="https://github.com/nasa-gcn/gcn-schema" rel="external">
           nasa-gcn/gcn-schema
         </Link>{' '}
-        repo on github. Run the following command in this repository's root to
-        install the necessary npm packages
+        repo on github. Run the following commands to get your local setup
+        ready.
       </p>
+      <Highlight
+        language="sh"
+        code="git clone https://github.com/nasa-gcn/gcn-schema"
+      />
+      <Highlight language="sh" code="cd gcn-schema" />
       <Highlight language="sh" code="npm i" />
       <p>
         The structure of the repository allows each producer to make their own
@@ -120,9 +125,19 @@ export default function SchemaDocumentation() {
         We recommend that you take a look through the{' '}
         {/*TODO: Uncomment once available: <Link href='/schema-browser'>schema browser</Link> */}
         schema-browser to get an idea of what common fields have already been
-        defined. A good method to start formulating your structure is to think
-        first of the JSON and build the schema to fit.
-        {/* Add another tabbed code view with real samples. Use the NPM version which will be added with the browser update */}
+        defined, as well as the{' '}
+        <Link href="https://www.learnjsonschema.com/" rel="external">
+          json schema documentation
+        </Link>{' '}
+        to familiarize yourself with the various keywords and types. A good
+        method to start formulating your structure is to think first of your
+        data product as JSON. Consider the possible values that your pipelines
+        will have for each field. Consider the following example:{' '}
+        {/* TODO: Get an example that utilizes core components*/}
+        {/* Add another tabbed code view with real samples.
+         Use the NPM version which will be added with the browser update */}
+      </p>
+      <p>
         Defining structures in JSON schema can get confusing, but we are happy
         to help.
       </p>
