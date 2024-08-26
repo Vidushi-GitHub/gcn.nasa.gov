@@ -7,7 +7,11 @@
  */
 import { tables } from '@architect/functions'
 import type { DynamoDB } from '@aws-sdk/client-dynamodb'
-import { type DynamoDBDocument, paginateScan } from '@aws-sdk/lib-dynamodb'
+import {
+  type DynamoDBDocument,
+  paginateQuery,
+  paginateScan,
+} from '@aws-sdk/lib-dynamodb'
 import { search as getSearch } from '@nasa-gcn/architect-functions-search'
 import {
   DynamoDBAutoIncrement,
@@ -21,6 +25,7 @@ import { type User, getUser } from '../_auth/user.server'
 import {
   bodyIsValid,
   formatAuthor,
+  formatCircularText,
   formatIsValid,
   parseEventFromSubject,
   subjectIsValid,
@@ -31,14 +36,17 @@ import type {
   CircularChangeRequestKeys,
   CircularMetadata,
 } from './circulars.lib'
-import { sendEmail } from '~/lib/email.server'
+import { sendEmail, sendEmailBulk } from '~/lib/email.server'
 import { feature, origin } from '~/lib/env.server'
+import { closeZendeskTicket } from '~/lib/zendesk.server'
 
 // A type with certain keys required.
 type Require<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 export const submitterGroup = 'gcn.nasa.gov/circular-submitter'
 export const moderatorGroup = 'gcn.nasa.gov/circular-moderator'
+
+const fromName = 'GCN Circulars'
 
 const getDynamoDBAutoIncrement = memoizee(
   async function () {
@@ -159,7 +167,7 @@ export async function search({
         }
 
   const queryObj = query
-    ? feature('CICRULARS_LUCENE')
+    ? feature('CIRCULARS_LUCENE')
       ? {
           simple_query_string: {
             query,
@@ -387,7 +395,7 @@ export async function createChangeRequest(
     | 'editedOn'
     | 'submitter'
     | 'createdOn'
-  > & { submitter?: string; createdOn?: number },
+  > & { submitter?: string; createdOn?: number; zendeskTicketId: number },
   user?: User
 ) {
   validateCircular(item)
@@ -462,10 +470,9 @@ export async function deleteChangeRequest(
       { status: 403 }
     )
 
-  const requestorEmail = (await getChangeRequest(circularId, requestorSub))
-    .requestorEmail
+  const changeRequest = await getChangeRequest(circularId, requestorSub)
+  const requestorEmail = changeRequest.requestorEmail
   await deleteChangeRequestRaw(circularId, requestorSub)
-
   await sendEmail({
     to: [requestorEmail],
     fromName: 'GCN Circulars',
@@ -516,7 +523,8 @@ async function deleteChangeRequestRaw(
 export async function approveChangeRequest(
   circularId: number,
   requestorSub: string,
-  user: User
+  user: User,
+  redistribute: boolean
 ) {
   if (!user?.groups.includes(moderatorGroup))
     throw new Response('User is not in the moderators group', {
@@ -527,7 +535,7 @@ export async function approveChangeRequest(
   const circular = await get(circularId)
   const autoincrementVersion = await getDynamoDBVersionAutoIncrement(circularId)
 
-  await autoincrementVersion.put({
+  const newVersion = {
     ...circular,
     body: changeRequest.body,
     subject: changeRequest.subject,
@@ -536,18 +544,27 @@ export async function approveChangeRequest(
     format: changeRequest.format,
     submitter: changeRequest.submitter,
     createdOn: changeRequest.createdOn ?? circular.createdOn, // This is temporary while there are some requests without this property
-  })
+  }
 
-  await deleteChangeRequestRaw(circularId, requestorSub)
-
-  await sendEmail({
-    to: [changeRequest.requestorEmail],
-    fromName: 'GCN Circulars',
-    subject: 'GCN Circulars Change Request: Approved',
-    body: dedent`Your change request has been approved for GCN Circular ${changeRequest.circularId}.
+  const promises = [
+    autoincrementVersion.put(newVersion),
+    deleteChangeRequestRaw(circularId, requestorSub),
+    sendEmail({
+      to: [changeRequest.requestorEmail],
+      fromName: 'GCN Circulars',
+      subject: 'GCN Circulars Change Request: Approved',
+      body: dedent`Your change request has been approved for GCN Circular ${changeRequest.circularId}.
 
     View the Circular at ${origin}/circulars/${changeRequest.circularId}`,
-  })
+    }),
+  ]
+
+  if (redistribute) promises.push(send(newVersion))
+
+  if (changeRequest.zendeskTicketId)
+    promises.push(closeZendeskTicket(changeRequest.zendeskTicketId))
+
+  await Promise.all(promises)
 }
 
 /**
@@ -581,4 +598,63 @@ function validateCircular({
   if (!bodyIsValid(body)) throw new Response('body is invalid', { status: 400 })
   if (!(format === undefined || formatIsValid(format)))
     throw new Response('format is invalid', { status: 400 })
+}
+
+async function getEmails() {
+  const db = await tables()
+  const client = db._doc as unknown as DynamoDBDocument
+  const TableName = db.name('circulars_subscriptions')
+  const pages = paginateScan(
+    { client },
+    { AttributesToGet: ['email'], TableName }
+  )
+  const emails: string[] = []
+  for await (const page of pages) {
+    const newEmails = page.Items?.map(({ email }) => email)
+    if (newEmails) emails.push(...newEmails)
+  }
+  return emails
+}
+
+async function getLegacyEmails() {
+  const db = await tables()
+  const client = db._doc as unknown as DynamoDBDocument
+  const TableName = db.name('legacy_users')
+  const pages = paginateQuery(
+    { client },
+    {
+      IndexName: 'legacyReceivers',
+      KeyConditionExpression: 'receive = :receive',
+      ExpressionAttributeValues: {
+        ':receive': 1,
+      },
+      ProjectionExpression: 'email',
+      TableName,
+    }
+  )
+  const emails: string[] = []
+  for await (const page of pages) {
+    const newEmails = page.Items?.map(({ email }) => email)
+    if (newEmails) emails.push(...newEmails)
+  }
+  return emails
+}
+
+export async function send(circular: Circular) {
+  const [emails, legacyEmails] = await Promise.all([
+    getEmails(),
+    getLegacyEmails(),
+  ])
+  const to = [...emails, ...legacyEmails]
+  await sendEmailBulk({
+    fromName,
+    to,
+    subject: circular.subject,
+    body: `${formatCircularText(
+      circular
+    )}\n\n\nView this GCN Circular online at ${origin}/circulars/${
+      circular.circularId
+    }.`,
+    topic: 'circulars',
+  })
 }
