@@ -18,23 +18,23 @@ import logo from './logo_svom_black.svg'
 
 **Launch Date:** June 22, 2024
 
-**Anticipated Start of Science Operations:** December 2024
+**Anticipated Start of Science Operations:** January 2025
 
 **End of Operations:** Mission duration of 3 years
 
 **Data Archive:**
 [HEASARC SVOM Archive](https://heasarc.gsfc.nasa.gov/docs/heasarc/missions/svom.html)
 
-The [Space-based multi-band astronomical Variable Objects Monitor (SVOM)](https://www.svom.eu/en/the-svom-mission/) is a French-Chinese mission, result of a collaboration between the two national space agencies, [China National Space Administration (CNSA)](https://www.cnsa.gov.cn/english/index.html) and [Centre national d'études spatiales (CNES)](https://irfu.cea.fr/dap/en/Phocea/Vie_des_labos/Ast/ast_technique.php?id_ast=2276). SVOM mission is dedicated to the study of the the most powerful transient phenomena, with a particular emphasis on gamma-ray bursts (GRBs).
+The [Space-based multi-band astronomical Variable Objects Monitor (SVOM)](https://www.svom.eu/en/the-svom-mission/) is a French-Chinese mission, result of a collaboration between the two national space agencies, [China National Space Administration (CNSA)](https://www.cnsa.gov.cn/english/index.html) and [Centre national d'études spatiales (CNES)](https://cnes.fr/en/projects/svom). SVOM mission is dedicated to the study of the the most powerful transient phenomena, with a particular emphasis on gamma-ray bursts (GRBs).
 
-The SVOM spacecraft carries four multi-wavelength instruments: ECLAIRs, Gamma Ray burst Monitor (GRM), Microchannel X-ray Telescope (MXT) and Visual Telescope (VT). ECLAIRs and GRM can detect gamma-ray transient sources in real-time with localisation capabilities for ECLAIRs. SVOM can transfer the alerts in near real-time with a typical latency of less than 30s for 2/3 of the alerts and perform autonomous slew for performing x-ray and optical follow-up of the source with the smaller field of view of theMXT and VT instrument
+The SVOM spacecraft carries four multi-wavelength instruments: ECLAIRs, Gamma Ray burst Monitor (GRM), Microchannel X-ray Telescope (MXT) and Visual Telescope (VT). ECLAIRs and GRM can detect gamma-ray transient sources in real-time with localisation capabilities for ECLAIRs. SVOM can transfer the alerts in near real-time with a typical latency of less than 30s and perform autonomous slew to allow x-ray and optical follow-up of the source with the smaller field of view instruments: MXT and VT.
 
  <div className="overflow-table">
 
-| Instruments | Energy Range                                           | Field of View | Localization                                   |
-| ----------- | ------------------------------------------------------ | ------------- | ---------------------------------------------- |
-| ECLAIRs     | 4 - 250 keV                                            | 2 ster        | ~8ʹ radius (statistical, 90% confidence)       |
-| GRM         | 15 - 5000 keV                                          | 2.6 ster      | ~1-10° radius (statistical, 90% confidence)    |
+| Instruments | Energy Range                                           | Field of View | Localization                                  |
+| ----------- | ------------------------------------------------------ | ------------- | --------------------------------------------- |
+| ECLAIRs     | 4 - 250 keV                                            | 2 ster        | ~8ʹ radius (statistical, 90% confidence)      |
+| GRM         | 15 - 5000 keV                                          | 2.6 ster      | ~1-10° radius (statistical, 90% confidence)   |
 | MXT         | 0.2 - 10 keV                                           | 1.1° x 1.1°   | ~10-100ʺ radius (statistical, 90% confidence) |
 | VT          | 450 - 650 nm (Blue band) <br/>650 - 1000 nm (Red band) | 26ʹ x 26'     | ~1ʺ radius (statistical, 90% confidence)      |
 
@@ -46,11 +46,16 @@ SVOM distributes alerts and localizations detections of gamma-ray transients. Th
 
  <div className="overflow-table">
 
-| Type               | Contents                                                                                  | Latency   |
-| ------------------ | ----------------------------------------------------------------------------------------- | --------- |
-| `trigger`          | eclairs.trigger.wakeup, eclairs.trigger.not-slewing, eclairs.trigger.slewing, grm.trigger | ~1-10 sec |
-| `mxt.localisation` | mxt.localisation                                                                          | ~1 min    |
-| `refined`          | eclairs.refined, grm.refined, eclgrm.refined                                              | ~10 min   |
+| Type                      | Contents                                                                         | Latency |
+| ------------------------- | -------------------------------------------------------------------------------- | ------- |
+| `grm.trigger`             | GRM trigger notice with possible raw localization                                | ~10 sec |
+| `eclairs.trigger.wakeup`  | ECLAIRs localisation of a new potential burst                                    | ~10 sec |
+| `eclairs.trigger.catalog` | ECLAIRs localisation on a source of the on-board catalogue                       | ~10 sec |
+| `eclairs.trigger.slew`    | Updated localisation of ECLAIRs trigger with slew status of the platform         | ~1 min  |
+| `mxt.localisation`        | MXT localisation (only if platform slew), can be updated up to 3 times           | ~5 min  |
+| `grm.refined`             | Burst parameters (T90, HR, classification) derived from a subset of GRM data     | ~15 min |
+| `eclairs.refined`         | Burst parameters (T90, HR, classification) derived from a subset of ECLAIRs data | ~15 min |
+| `eclgrm.refined`          | Combined hardness ratio derived from ECLAIRs and GRM data                        | ~15 min |
 
  </div>
 
@@ -62,5 +67,24 @@ SVOM distributes alerts and localizations detections of gamma-ray transients. Th
 | ---------- | -------------------------- | ------------ |
 | ECLAIRs    | GRBs, and other transients | 50 GRBs/yr   |
 | GRM        | GRBs, and other transients | 90 GRBs/yr   |
+
+ </div>
+
+Following a detection of an event by ECLAIRs or GRM, an automated analysis is performed on a subset of the intrument data to retrieve basic parameters of the burst e.g. T90 and hardness ratio. The results of this analysis is issued in the so-called `refined` notices. A classification of the event is also quickly estimated according to the following table and given with its associated probability:
+
+ <div className="overflow-table">
+
+| Type                                 |
+| ------------------------------------ |
+| Short GRB                            |
+| Long GRB                             |
+| Soft GRB                             |
+| Soft gamma-Ray repeater flare (SGR)  |
+| X-ray Binaries (XRB)                 |
+| Solar flares                         |
+| Terrestrial gamma-ray flashes (TGFs) |
+| Local particles                      |
+| Particle shower                      |
+| Noise events                         |
 
  </div>
