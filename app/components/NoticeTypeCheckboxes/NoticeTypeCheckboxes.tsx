@@ -232,14 +232,21 @@ export function NoticeTypeCheckboxes({
   }
 
   if (useFeature('FERMI_GBM_QUICKSTART')) {
-    JsonNoticeTypes.Fermi = [
-      'gcn.notices.fermi.gbm.alert',
-      'gcn.notices.fermi.gbm.final_position',
-      'gcn.notices.fermi.gbm.flight_position',
-      'gcn.notices.fermi.gbm.ground_position',
-      'gcn.notices.fermi.gbm.subthreshold',
-    ]
+    JsonNoticeTypes.Fermi = ['gcn.notices.fermi.gbm']
     JsonNoticeTypeLinks.Fermi = '/missions/fermi'
+  }
+
+  if (useFeature('SUPER_K_QUICKSTART')) {
+    JsonNoticeTypes['Super Kamiokande'] = [
+      'gcn.notices.superk.sn_alert',
+      'gcn.notices.superk.sn_alert.test',
+    ]
+    JsonNoticeTypeLinks['Super Kamiokande'] = '/missions/sksn'
+  }
+
+  if (useFeature('CHIME')) {
+    JsonNoticeTypes.Chime = ['gcn.notices.chime.alert']
+    JsonNoticeTypeLinks.Chime = '/missions/chime'
   }
 
   const counterfunction = (childRef: HTMLInputElement) => {
