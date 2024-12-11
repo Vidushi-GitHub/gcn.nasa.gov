@@ -341,7 +341,7 @@ Additional information can be found on the [LIGO website](https://emfollow.docs.
 
 [MOCpy](https://cds-astro.github.io/mocpy/): Python library allowing easy creation, parsing and manipulation of Multi-Order Coverage maps.
 
-## Papers
+## References
 
 (1) Calabretta, M. R., & Roukema, B. F. 2007, Mon. Notices Royal Astron. Soc., 381, 865. [doi: 10.1111/j.1365-2966.2007.12297.x](https://doi.org/10.1111/j.1365-2966.2007.12297.x)
 
