@@ -230,7 +230,7 @@ match_index = np.flatnonzero(ipix == match_ipix)[0]
 prob_density = skymap[match_index]['PROBDENSITY'].to_value(u.deg**-2)
 ```
 
-#### Find the 90% Probability Region
+#### 90% Probability Region
 
 The estimation of a 90% probability region, involves sorting the pixel, calculating the area of each pixel, and then proceeding by the probability of each pixel.
 
