@@ -329,7 +329,7 @@ ipix_poly = hp.query_polygon(nside, xyz)
 hpx[ipix_poly].sum()
 ```
 
-##### Further documentation
+##### Other Documentation and HEALPix Packages
 
 Additional information can be found on the [LIGO website](https://emfollow.docs.ligo.org/userguide/tutorial/multiorder_sky maps.html)
 
