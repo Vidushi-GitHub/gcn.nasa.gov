@@ -175,7 +175,7 @@ For localization of events, the multi-messenger community uses the standard [HEA
 
 ### Multi-Order Sky Maps
 
-GCN strongly encourages the use of multi-order sky maps. These are a more complex form of healpix sky maps that utilize a variable resolution, with higher probability regions having higher resolution and lower probability regions being encoded with a lower resolution. This is signicantly more efficient than single-resolution healpix sky maps with respect to storage footprint and read speed. However, interpreting these multi-order sky maps can be more complex.
+GCN strongly encourages the use of multi-order sky maps. They utilize a variable resolution, with higher probability regions having higher resolution and lower probability regions being encoded with a lower resolution. This is signicantly more efficient than single-resolution HEALPix sky maps with respect to storage footprint and read speed. However, interpreting these multi-order sky maps can be more complex.
 
 ### Working with HEALPix Maps
 
