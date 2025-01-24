@@ -138,39 +138,31 @@ export function shouldRevalidate() {
 }
 
 function useLoaderDataRoot() {
-  const result = useRouteLoaderData<typeof loader>('root')
-  invariant(result)
-  return result
+  return useRouteLoaderData<typeof loader>('root')
 }
 
 export function useUserIdp() {
-  const { idp } = useLoaderDataRoot()
-  return idp
+  return useLoaderDataRoot()?.idp
 }
 
 export function useEmail() {
-  const { email } = useLoaderDataRoot()
-  return email
+  return useLoaderDataRoot()?.email
 }
 
 export function useName() {
-  const { name } = useLoaderDataRoot()
-  return name
+  return useLoaderDataRoot()?.name
 }
 
 export function useModStatus() {
-  const { userIsMod } = useLoaderDataRoot()
-  return userIsMod
+  return useLoaderDataRoot()?.userIsMod
 }
 
 export function useSubmitterStatus() {
-  const { userIsVerifiedSubmitter } = useLoaderDataRoot()
-  return userIsVerifiedSubmitter
+  return useLoaderDataRoot()?.userIsVerifiedSubmitter
 }
 
 export function useRecaptchaSiteKey() {
-  const { recaptchaSiteKey } = useLoaderDataRoot()
-  return recaptchaSiteKey
+  return useLoaderDataRoot()?.recaptchaSiteKey
 }
 
 /**
@@ -183,7 +175,7 @@ export function useRecaptchaSiteKey() {
  */
 export function useFeature(feature: string) {
   const featureUppercase = feature.toUpperCase()
-  return useLoaderDataRoot().features.includes(featureUppercase)
+  return useLoaderDataRoot()?.features.includes(featureUppercase)
 }
 
 export function WithFeature({
@@ -195,8 +187,13 @@ export function WithFeature({
   return <>{useFeature(Object.keys(features)[0]) && children}</>
 }
 
+export function useOrigin() {
+  return useLoaderDataRoot()?.origin
+}
+
 export function useUrl() {
-  const { origin } = useLoaderDataRoot()
+  const origin = useOrigin()
+  invariant(origin)
   const { pathname, search, hash } = useLocation()
   const url = new URL(origin)
   url.pathname = pathname
@@ -205,12 +202,9 @@ export function useUrl() {
   return url.toString()
 }
 
-export function useOrigin() {
-  return useLoaderDataRoot().origin
-}
-
 export function useHostname() {
-  return new URL(useLoaderDataRoot().origin).hostname
+  const origin = useOrigin()
+  if (origin) return new URL(origin).hostname
 }
 
 export function useDomain() {
@@ -253,11 +247,10 @@ export function Layout({ children }: { children?: ReactNode }) {
         <DevBanner />
         <Header />
         <NewsBanner>
-          Announcing GCN Classic Migration Survey, End of Legacy Circulars
-          Email. See{' '}
+          GCN at AAS 245, Legacy Circulars Address Retirement. See{' '}
           <Link
             className="usa-link"
-            to="/news#-gcn-classic-migration-survey-and-legacy-circular-submission-email-retirement"
+            to="/news#--gcn-at-aas-245-legacy-circulars-address-retirement"
           >
             news and announcements
           </Link>

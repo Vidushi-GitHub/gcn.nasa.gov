@@ -1,6 +1,7 @@
 import properties from 'highlight.js/lib/languages/properties'
 import { common } from 'lowlight'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeCitation from 'rehype-citation'
 import rehypeClassNames from 'rehype-class-names'
 import rehypeExternalLinks from 'rehype-external-links'
 import rehypeHighlight from 'rehype-highlight'
@@ -45,6 +46,15 @@ const esmOnlyModules = [
   /^vfile/,
 ]
 
+// These packages should never be bundled.
+const neverBundledModules = [
+  // Included in AWS Lambda base image
+  /@?aws-sdk(?:\/|$)/,
+  // Used to polyfill Web Fetch; not needed for Node.js >= 20
+  'undici',
+  '@remix-run/web-fetch',
+]
+
 /** @type {import('@remix-run/dev').AppConfig} */
 export default {
   mdx: {
@@ -67,6 +77,12 @@ export default {
           ...options,
         }),
       (options) => rehypeAutolinkHeadings({ behavior: 'wrap', ...options }),
+      (options) =>
+        rehypeCitation({
+          bibliography: 'references.bib',
+          linkCitations: true,
+          ...options,
+        }),
     ],
     remarkPlugins: [remarkGfm],
   },
@@ -80,7 +96,15 @@ export default {
   serverModuleFormat: 'cjs',
   serverDependenciesToBundle: [
     ...esmOnlyModules,
-    ...(isProduction ? [/^(?!@?aws-sdk(\/|$))/] : []),
+    ...(isProduction
+      ? [
+          new RegExp(
+            `^(?!${neverBundledModules
+              .map((item) => (item instanceof RegExp ? item.source : item))
+              .join('|')})`
+          ),
+        ]
+      : []),
   ],
   future: { v3_relativeSplatPath: true },
 }

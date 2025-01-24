@@ -17,13 +17,20 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: NPM Install
         run: |
           npm ci
-          npm i --os=linux --cpu=arm64
+          rm -rf node_modules/@mongodb-js/zstd
+          npm i --platform=linux --arch=arm64
       - name: Build
         run: npm run build
+      - name: Summarize Lamdba deployment bundle sizes
+        run: |
+          echo '# Lambda Sizes' >> $GITHUB_STEP_SUMMARY
+          echo '|Size|Build Directory|' >> $GITHUB_STEP_SUMMARY
+          echo '|-|-|' >> $GITHUB_STEP_SUMMARY
+          du -hs $(find build -name 'index.*js' -exec dirname {} \;) | perl -pe 's/^\s*/|/; s/(\s+)/|/; s/$/|/' >> $GITHUB_STEP_SUMMARY
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -55,7 +62,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: NPM Install
         run: npm ci
       - name: Download artifacts

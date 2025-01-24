@@ -143,8 +143,12 @@ synonyms
   synonymId *String
   name synonymsByUuid
 
+synonyms
+  slug *String
+  name synonymsBySlug
+
 @aws
-runtime nodejs20.x
+runtime nodejs22.x
 region us-east-1
 architecture arm64
 memory 256
@@ -158,6 +162,8 @@ availabilityZoneCount 3
 volumeSize 10
 dedicatedMasterCount 3
 dedicatedMasterType t3.small.search
+autoSoftwareUpdateEnabled true
+offPeakWindowEnabled true
 
 @plugins
 plugin-remix
