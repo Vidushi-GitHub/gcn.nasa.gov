@@ -18,7 +18,7 @@ import logo from './logo_svom_black.svg'
 
 **Launch Date:** June 22, 2024
 
-**Anticipated Start of Science Operations:** January 2025
+**Anticipated Start of Science Operations:** February 2025
 
 **End of Operations:** Mission duration of 3 years
 
@@ -42,20 +42,16 @@ The SVOM spacecraft carries four multi-wavelength instruments: ECLAIRs, Gamma Ra
 
 #### JSON-Serialized GCN Notice Types in GCN Kafka
 
-SVOM distributes alerts and localizations detections of gamma-ray transients. These notices are published on the GCN Kafka and VOEvent topics as `gcn.notices.svom` and `gcn.notices.svom.voevent`, respectively.
+SVOM distributes alerts and localizations of gamma-ray burst and other transients. For now, these notices are published only in VOEvent format through the GCN Kafka topics prfixed `gcn.notices.svom.voevent`. Support in the JSON format will be available as soon as possible.
+As SVOM is at the beginning of its operationnal phase, only the first alerts from GRM, ECLAIRs and MXT are available, see table below:
 
  <div className="overflow-table">
 
-| Type                      | Contents                                                                         | Latency |
-| ------------------------- | -------------------------------------------------------------------------------- | ------- |
-| `grm.trigger`             | GRM trigger notice with possible raw localization                                | ~10 sec |
-| `eclairs.trigger.wakeup`  | ECLAIRs localisation of a new potential burst                                    | ~10 sec |
-| `eclairs.trigger.catalog` | ECLAIRs localisation on a source of the on-board catalogue                       | ~10 sec |
-| `eclairs.trigger.slew`    | Updated localisation of ECLAIRs trigger with slew status of the platform         | ~1 min  |
-| `mxt.localisation`        | MXT localisation (only if platform slew), can be updated up to 3 times           | ~5 min  |
-| `grm.refined`             | Burst parameters (T90, HR, classification) derived from a subset of GRM data     | ~15 min |
-| `eclairs.refined`         | Burst parameters (T90, HR, classification) derived from a subset of ECLAIRs data | ~15 min |
-| `eclgrm.refined`          | Combined hardness ratio derived from ECLAIRs and GRM data                        | ~15 min |
+| kafka topic                                       | Contents                                                                                        | Latency         |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------- |
+| `gcn.notices.svom.voevent.grm`                    | GRM trigger with possible raw localization                                                      | ~10 sec         |
+| `gcn.notices.svom.voevent.eclairs.trigger.wakeup` | ECLAIRs localization of a potential burst, can be updated once with slew status of the platform | ~10 sec - 1 min |
+| `gcn.notices.svom.voevent.mxt`                    | MXT localization of a found counterpart (only if platform slew), can be updated up to 3 times   | ~5 min          |
 
  </div>
 
@@ -67,24 +63,5 @@ SVOM distributes alerts and localizations detections of gamma-ray transients. Th
 | ---------- | -------------------------- | ------------ |
 | ECLAIRs    | GRBs, and other transients | 50 GRBs/yr   |
 | GRM        | GRBs, and other transients | 90 GRBs/yr   |
-
- </div>
-
-Following a detection of an event by ECLAIRs or GRM, an automated analysis is performed on a subset of the intrument data to retrieve basic parameters of the burst e.g. T90 and hardness ratio. The results of this analysis is issued in the so-called `refined` notices. A classification of the event is also quickly estimated according to the following table and given with its associated probability:
-
- <div className="overflow-table">
-
-| Type                                 |
-| ------------------------------------ |
-| Short GRB                            |
-| Long GRB                             |
-| Soft GRB                             |
-| Soft gamma-Ray repeater flare (SGR)  |
-| X-ray Binaries (XRB)                 |
-| Solar flares                         |
-| Terrestrial gamma-ray flashes (TGFs) |
-| Local particles                      |
-| Particle shower                      |
-| Noise events                         |
 
  </div>
